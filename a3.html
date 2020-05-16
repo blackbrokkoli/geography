@@ -68,8 +68,8 @@
     }
 
   </style>
-
   <div id="hook"></div>
+    <div class="text-5xl font-bold uppercase text-center m-8" id="country"> </div>
   <div id="score"></div>
   <div id="info" class="border rounded p-4">Info</div>
 
@@ -120,14 +120,16 @@
     /* GIS data injection *********************************** */
     d3.json("./world.json", function(error, world) {
 
+
       topo = topojson.feature(world, world.objects.countries).features;
       var neighbors = topojson.neighbors(world.objects.countries.geometries);
 
       //filter and place borders into topo
       topo = topo.filter(function(f,i){
-        if(path.area(f)>100){
+        if(path.area(f)>10){
           var b = neighbors[i];
           var t = 'Nearby...  ';
+          f.properties.countryName = "Test"
           if(b.length>0){
             b.forEach(function(g){
               t = t + topo[g].properties.name+', ';
@@ -140,10 +142,16 @@
         }
       });
 
+      console.log("Topo 0", topo[0].properties)
+
       //lets shuffle topo so that it shows different countries on each reload
       d3.shuffle(topo);
 
+
+      // Names are lost here
       var country = d3.select("#innerg").selectAll(".country").data(topo);
+
+      console.log("country 0", country[0])
 
       //ofsets (useless !)
       var offsetL = document.getElementById('hook').offsetLeft+30;
@@ -177,7 +185,9 @@
       .call(drag);
 
       //all used to keep track
+      // what?
       all = d3.selectAll(".country")[0];
+      console.log(all)
       d3.select("#info").text("World Map");
 
       //start
@@ -197,7 +207,11 @@
 
       if(all.length>0){
         var obj = d3.select(all.shift());
+        // console.log("Generated Obj", obj)
+        console.log("Generated Obj Prop", obj[0][0].__data__.properties.name )
+        d3.select("#country").text(obj[0][0].__data__.properties.name)
         obj.style("display","block");
+        // console.log(obj.attr("title"));
         d3.select("#info").text(obj.attr("title"));
         window.setTimeout(function(){
           d3.select("#info").attr("class","");
@@ -234,6 +248,7 @@
     function dragmove(d) {
       //only if its new country
       if(d3.select('#b'+d.id).attr("class") == "country"){
+        console.log(d3.select('#b'+d.id))
         d.x += d3.event.dx;
         d.y += d3.event.dy;
         d3.select(this).attr("transform", function(d,i){
